@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="it" class="dark scroll-smooth selection:bg-cyan-500 selection:text-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elias Rkibi | Cyber HUD Operational Dossier</title>
+
+    <!-- Google Fonts: Rajdhani, Orbitron, Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        hud: ['Orbitron', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        cyber: {
+                            bg: '#030712',
+                            card: 'rgba(7, 16, 38, 0.75)',
+                            border: 'rgba(0, 243, 255, 0.25)',
+                            cyan: '#00f3ff',
+                            magenta: '#ff007f',
+                            violet: '#8b5cf6',
+                            amber: '#f59e0b',
+                            emerald: '#10b981',
+                        }
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 243, 255, 0.35), inset 0 0 15px rgba(0, 243, 255, 0.1)',
+                        'neon-magenta': '0 0 15px rgba(255, 0, 127, 0.35), inset 0 0 15px rgba(255, 0, 127, 0.1)',
+                        'neon-glow': '0 0 25px rgba(0, 243, 255, 0.5)',
+                    },
+                    animation: {
+                        'hud-pulse': 'hudPulse 2.5s ease-in-out infinite',
+                        'radar-sweep': 'radarSweep 4s linear infinite',
+                        'glitch-anim': 'glitch 1s linear infinite',
+                    },
+                    keyframes: {
+                        hudPulse: {
+                            '0%, 100%': { opacity: '0.4' },
+                            '50%': { opacity: '0.9' },
+                        },
+                        radarSweep: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Cyberpunk Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00f3ff;
+            border-radius: 2px;
+            box-shadow: 0 0 8px #00f3ff;
+        }
+
+        /* Hexagonal Overlay Pattern */
+        .hex-bg {
+            background-color: #030712;
+            background-image: radial-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        /* Scanline Overlay */
+        .scanline-overlay {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 243, 255, 0.04) 50%,
+                rgba(0, 243, 255, 0.04)
+            );
+            background-size: 100% 4px;
+        }
+
+        /* Sci-Fi HUD Corner Brackets */
+        .hud-card {
+            position: relative;
+            background: rgba(7, 16, 38, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .hud-card::before, .hud-card::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .hud-card::before {
+            top: -1px;
+            left: -1px;
+            border-top: 2px solid #00f3ff;
+            border-left: 2px solid #00f3ff;
+        }
+
+        .hud-card::after {
+            bottom: -1px;
+            right: -1px;
+            border-bottom: 2px solid #00f3ff;
+            border-right: 2px solid #00f3ff;
+        }
+
+        .hud-card:hover {
+            border-color: rgba(0, 243, 255, 0.6);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .hud-card:hover::before {
+            width: 16px;
+            height: 16px;
+            border-color: #ff007f;
+        }
+        .hud-card:hover::after {
+            width: 16px;
+            height: 16px;
+            border-color: #ff007f;
+        }
+
+        /* Glitch Effect Class */
+        .glitch-active {
+            animation: glitch-skew 0.3s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(-2deg); filter: hue-rotate(90deg); }
+            40% { transform: skew(2deg); filter: hue-rotate(180deg); }
+            60% { transform: skew(-1deg); }
+            80% { transform: skew(3deg); filter: hue-rotate(270deg); }
+            100% { transform: skew(0deg); }
+        }
+
+        /* Drag & Drop Visual State */
+        .hud-card.dragging {
+            opacity: 0.4;
+            border: 2px dashed #ff007f !important;
+            transform: scale(0.97);
+        }
+        .hud-card.drag-over {
+            border-color: #00f3ff !important;
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.5) !important;
+        }
+
+        /* HUD Glass Header Bar */
+        .hud-bar {
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.15) 0%, rgba(255, 0, 127, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        /* Print CSS Optimization */
+        @media print {
+            .no-print, #hud-bg-canvas, #boot-screen, #toast-container, nav, .hud-card::before, .hud-card::after {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-family: sans-serif !important;
+            }
+            .hud-card {
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+                box-shadow: none !important;
+                margin-bottom: 1rem !important;
+                break-inside: avoid;
+            }
+            .text-cyber-cyan, .text-cyber-magenta, .text-cyan-400, .text-white {
+                color: #0f172a !important;
+            }
+            .grid {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="hex-bg text-cyan-100 font-sans min-h-screen relative overflow-x-hidden selection:bg-cyber-cyan selection:text-black">
+
+    <div id="toast-container" class="no-print fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <canvas id="hud-bg-canvas" class="fixed inset-0 z-0 pointer-events-none opacity-60"></canvas>
+
+    <div id="scanline-layer" class="scanline-overlay fixed inset-0 z-10 pointer-events-none opacity-70"></div>
+
+    <div id="boot-screen" class="no-print fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 font-mono transition-opacity duration-700">
+        <div class="w-full max-w-xl space-y-6">
+            <div class="flex items-center justify-between text-cyber-cyan text-xs">
+                <span>[ SYSTEM_INIT_V4.09 ]</span>
+                <span class="animate-pulse">LOC: UDINE_NODE_33100</span>
+            </div>
+
+            <!-- Terminal Typewriter Log -->
+            <div class="hud-card p-5 rounded-lg border border-cyber-cyan/40 bg-slate-900/90 text-xs space-y-2 h-44 overflow-hidden shadow-neon-cyan">
+                <div class="text-emerald-400 font-bold">> CONNECTING NEURAL MATRIX...</div>
+                <div class="text-slate-400">> SEARCHING SUBJECT: ELIAS RKIBI</div>
+                <div class="text-cyber-cyan">> STATUS: UNIVERSITÀ DEGLI STUDI DI UDINE (STM)</div>
+                <div id="boot-log" class="text-cyber-magenta font-mono font-semibold"></div>
+            </div>
+
+            <!-- Glowing Progress Bar -->
+            <div class="space-y-1">
+                <div class="flex justify-between text-xs font-hud text-slate-300">
+                    <span>LOADING CYBER HUD DOSSIER</span>
+                    <span id="boot-percent" class="text-cyber-cyan font-mono">0%</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-900 rounded-full border border-cyber-cyan/30 overflow-hidden">
+                    <div id="boot-bar" class="h-full w-0 bg-gradient-to-r from-cyber-cyan via-cyber-violet to-cyber-magenta transition-all duration-100 shadow-neon-cyan"></div>
+                </div>
+            </div>
+
+            <button onclick="skipBootSequence()" class="w-full py-2 bg-slate-900/80 hover:bg-slate-800 border border-cyber-cyan/30 text-cyber-cyan text-xs rounded tracking-widest font-hud uppercase transition-all">
+                [ OVERRIDE & INITIALIZE NOW ]
+            </button>
+        </div>
+    </div>
+
+    <nav class="no-print sticky top-0 z-40 w-full bg-slate-950/80 backdrop-blur-xl border-b border-cyber-cyan/30 px-4 sm:px-8 py-3 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Logo / Operator Tag -->
+            <div class="flex items-center gap-3">
+                <div class="relative w-10 h-10 rounded bg-slate-900 border border-cyber-cyan flex items-center justify-center font-hud font-extrabold text-cyber-cyan shadow-neon-cyan">
+                    ER
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-hud font-black text-lg text-white tracking-wider">ELIAS RKIBI</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan">STM_UNIUD</span>
+                    </div>
+                    <span class="text-[11px] font-mono text-slate-400 block tracking-widest">
+                        OPERATOR DOSSIER :: <span class="text-emerald-400">ONLINE</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- HUD Control Bar Toolbar -->
+            <div class="flex items-center flex-wrap gap-2 text-xs font-mono">
+                
+                <!-- Audio SFX Toggle -->
+                <button id="sfx-btn" onclick="toggleAudioSFX()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all flex items-center gap-1.5" title="Toggle UI Sound FX">
+                    <i id="sfx-icon" class="fas fa-volume-xmark text-rose-400"></i>
+                    <span class="hidden sm:inline">SFX: OFF</span>
+                </button>
+
+                <!-- Scanline FX Toggle -->
+                <button onclick="toggleScanlines()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all flex items-center gap-1.5">
+                    <i class="fas fa-display text-cyber-cyan"></i>
+                    <span class="hidden sm:inline">SCANLINES</span>
+                </button>
+
+                <!-- Warp Speed Particle Toggle -->
+                <button onclick="toggleWarpMode()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all flex items-center gap-1.5">
+                    <i class="fas fa-rocket text-cyber-magenta"></i>
+                    <span class="hidden sm:inline">WARP</span>
+                </button>
+
+                <!-- Glitch Trigger -->
+                <button onclick="triggerCyberGlitch()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-rose-500 text-rose-400 hover:text-rose-300 transition-all flex items-center gap-1.5">
+                    <i class="fas fa-bolt"></i>
+                    <span class="hidden sm:inline">GLITCH</span>
+                </button>
+
+                <!-- Reset HUD Layout -->
+                <button onclick="resetHudLayout()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all flex items-center gap-1.5" title="Reset Draggable Panels">
+                    <i class="fas fa-arrows-rotate"></i>
+                    <span class="hidden md:inline">ALIGN HUD</span>
+                </button>
+
+                <!-- Print / PDF Export -->
+                <button onclick="window.print()" class="px-3.5 py-1.5 rounded bg-cyber-cyan text-slate-950 font-hud font-bold hover:bg-cyan-300 transition-all flex items-center gap-1.5 shadow-neon-cyan">
+                    <i class="fas fa-print"></i>
+                    <span>PRINT DOSSIER</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-20 space-y-6">
+
+        <!-- Top Status Ticker -->
+        <div class="no-print hud-card p-3 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+            <div class="flex items-center gap-3">
+                <span class="flex h-2.5 w-2.5 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-cyan opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyber-cyan"></span>
+                </span>
+                <span class="text-slate-300">
+                    <strong class="text-cyber-cyan">[SYSTEM STATUS]:</strong> ALL MODULES OPERATIONAL. DRAG PANELS TO CUSTOMIZE HUD GRID.
+                </span>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span>PATENTI: <strong class="text-amber-400">AM, B</strong></span>
+                <span>LOCATION: <strong class="text-white">UDINE (33100)</strong></span>
+            </div>
+        </div>
+
+        <!-- BENTO DRAGGABLE GRID -->
+        <div id="hud-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+            <!-- MODULE 1: PROFILE DOSSIER (Spans 2 cols) -->
+            <div id="module-profile" draggable="true" class="hud-card lg:col-span-2 rounded-2xl p-6 sm:p-8 flex flex-col justify-between group">
+                <!-- Drag handle -->
+                <div class="no-print absolute top-4 right-4 cursor-grab active:cursor-grabbing p-2 text-slate-500 hover:text-cyber-cyan bg-slate-900/80 rounded border border-slate-800 drag-handle" title="Drag to reorder HUD">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Top Bar Header -->
+                    <div class="hud-bar -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 p-4 px-6 sm:px-8 border-b border-cyber-cyan/20 flex items-center justify-between">
+                        <span class="font-hud text-xs font-bold text-cyber-cyan tracking-widest flex items-center gap-2">
+                            <i class="fas fa-address-card"></i> [SUBJECT_DOSSIER_PRIMARY]
+                        </span>
+                        <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/30">
+                            AVAILABLE FOR RECRUITMENT
+                        </span>
+                    </div>
+
+                    <!-- Profile Bio & Cyber Avatar -->
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 pt-2">
+                        
+                        <!-- Holographic Canvas Avatar -->
+                        <div class="relative shrink-0">
+                            <div class="w-32 h-32 rounded-xl bg-slate-900 border-2 border-cyber-cyan/50 p-1 relative overflow-hidden shadow-neon-cyan">
+                                <canvas id="avatar-canvas" class="w-full h-full rounded"></canvas>
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                                <span class="absolute bottom-1 left-1 right-1 text-center font-mono text-[9px] text-cyber-cyan bg-slate-950/90 py-0.5 border border-cyber-cyan/30 rounded">
+                                    ELIAS_RKIBI.RAW
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Bio Info -->
+                        <div class="space-y-3 text-center sm:text-left">
+                            <div>
+                                <h1 class="font-hud font-black text-3xl sm:text-4xl text-white tracking-wide">
+                                    ELIAS RKIBI
+                                </h1>
+                                <p class="text-sm font-mono text-cyber-cyan font-bold tracking-wider mt-1">
+                                    SCIENZE E TECNOLOGIE MULTIMEDIALI (UniUD)
+                                </p>
+                            </div>
+
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+                                Studente universitario in Scienze e Tecnologie Multimediali con un profilo versatile che unisce solide competenze informatiche a una consolidata esperienza nelle vendite consulenziali, nella promozione tecnologica e nell'animazione sociale. Ottime capacità relazionali e teamwork in contesti dinamici.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Transmission Contact Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-mono">
+                        
+                        <!-- Email -->
+                        <button onclick="copyTransmission('elias.rkibi@gmail.com', 'Email copiata con successo!')" class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyber-cyan transition-all flex items-center justify-between text-left group">
+                            <div class="flex items-center gap-3 truncate">
+                                <i class="fas fa-envelope text-cyber-cyan"></i>
+                                <span class="text-slate-200 truncate">elias.rkibi@gmail.com</span>
+                            </div>
+                            <i class="fas fa-copy text-slate-500 group-hover:text-cyber-cyan text-xs"></i>
+                        </button>
+
+                        <!-- Phone -->
+                        <button onclick="copyTransmission('(+39) 345-482-0685', 'Numero di telefono copiato!')" class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-400 transition-all flex items-center justify-between text-left group">
+                            <div class="flex items-center gap-3 truncate">
+                                <i class="fas fa-phone text-emerald-400"></i>
+                                <span class="text-slate-200 truncate">(+39) 345-482-0685</span>
+                            </div>
+                            <i class="fas fa-copy text-slate-500 group-hover:text-emerald-400 text-xs"></i>
+                        </button>
+
+                        <!-- PEC -->
+                        <button onclick="copyTransmission('eliasrkibi@superpec.it', 'PEC ufficiale copiata!')" class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyber-violet transition-all flex items-center justify-between text-left group">
+                            <div class="flex items-center gap-3 truncate">
+                                <i class="fas fa-shield-halved text-cyber-violet"></i>
+                                <span class="text-slate-200 truncate">eliasrkibi@superpec.it</span>
+                            </div>
+                            <i class="fas fa-copy text-slate-500 group-hover:text-cyber-violet text-xs"></i>
+                        </button>
+
+                        <!-- Location & Driving -->
+                        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-left">
+                            <div class="flex items-center gap-3 truncate">
+                                <i class="fas fa-map-location-dot text-amber-400"></i>
+                                <span class="text-slate-200 truncate">Udine, 33100 (IT)</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">PATENTI AM, B</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 2: NEURAL RECRUITER ANALYZER (Interactive Widget) -->
+            <div id="module-matcher" draggable="true" class="hud-card rounded-2xl p-6 flex flex-col justify-between">
+                <div class="no-print absolute top-4 right-4 cursor-grab active:cursor-grabbing p-2 text-slate-500 hover:text-cyber-cyan bg-slate-900/80 rounded border border-slate-800 drag-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="hud-bar -mx-6 -mt-6 p-4 px-6 border-b border-cyber-cyan/20 flex items-center justify-between">
+                        <span class="font-hud text-xs font-bold text-cyber-magenta tracking-widest flex items-center gap-2">
+                            <i class="fas fa-brain"></i> [NEURAL_MATCH_ANALYZER]
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-slate-300">
+                        Seleziona l'area operativa della tua azienda per calcolare la compatibilità istantanea di Elias:
+                    </p>
+
+                    <div class="space-y-2 text-xs font-mono">
+                        <button onclick="computeMatch('software')" class="w-full p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyber-cyan text-left transition-all flex items-center justify-between">
+                            <span><i class="fas fa-code text-cyber-cyan mr-2"></i> Software & Multimedia Dev</span>
+                            <i class="fas fa-chevron-right text-slate-600 text-[10px]"></i>
+                        </button>
+                        <button onclick="computeMatch('sales')" class="w-full p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-amber-400 text-left transition-all flex items-center justify-between">
+                            <span><i class="fas fa-laptop text-amber-400 mr-2"></i> Tech Sales & Promoter</span>
+                            <i class="fas fa-chevron-right text-slate-600 text-[10px]"></i>
+                        </button>
+                        <button onclick="computeMatch('social')" class="w-full p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-emerald-400 text-left transition-all flex items-center justify-between">
+                            <span><i class="fas fa-users text-emerald-400 mr-2"></i> User Support & Community</span>
+                            <i class="fas fa-chevron-right text-slate-600 text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Match Calculation Output -->
+                <div id="match-output" class="mt-4 p-3 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/40 text-xs font-mono space-y-1">
+                    <div class="flex justify-between items-center text-cyber-cyan font-bold">
+                        <span>MATCH COMPATIBILITY:</span>
+                        <span class="text-sm">98% ⚡</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300">
+                        Clicca un'area sopra per eseguire l'analisi diagnostica del profilo.
+                    </p>
+                </div>
+            </div>
+
+            <!-- MODULE 3: SKILL MATRIX & CANVAS RADAR -->
+            <div id="module-skills" draggable="true" class="hud-card rounded-2xl p-6 flex flex-col justify-between">
+                <div class="no-print absolute top-4 right-4 cursor-grab active:cursor-grabbing p-2 text-slate-500 hover:text-cyber-cyan bg-slate-900/80 rounded border border-slate-800 drag-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+
+                <div>
+                    <div class="hud-bar -mx-6 -mt-6 p-4 px-6 border-b border-cyber-cyan/20 flex items-center justify-between mb-4">
+                        <span class="font-hud text-xs font-bold text-cyber-cyan tracking-widest flex items-center gap-2">
+                            <i class="fas fa-chart-pie"></i> [NEURAL_SKILL_RADAR]
+                        </span>
+                    </div>
+
+                    <!-- Radar Canvas -->
+                    <div class="relative w-full aspect-square max-w-[220px] mx-auto my-2">
+                        <canvas id="skill-radar-canvas" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+
+                <!-- Skill Filter Tabs -->
+                <div class="pt-2 border-t border-slate-800 text-[11px] font-mono flex justify-around text-slate-400">
+                    <span class="text-cyber-cyan">● Dev Code</span>
+                    <span class="text-cyber-violet">● Languages</span>
+                </div>
+            </div>
+
+            <!-- MODULE 4: CLASSIFIED OPERATIONAL MISSIONS (Experience - Spans 2 cols) -->
+            <div id="module-experience" draggable="true" class="hud-card lg:col-span-2 rounded-2xl p-6 sm:p-8">
+                <div class="no-print absolute top-4 right-4 cursor-grab active:cursor-grabbing p-2 text-slate-500 hover:text-cyber-cyan bg-slate-900/80 rounded border border-slate-800 drag-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="hud-bar -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 p-4 px-6 sm:px-8 border-b border-cyber-cyan/20 flex flex-wrap items-center justify-between gap-2">
+                        <span class="font-hud text-xs font-bold text-cyber-cyan tracking-widest flex items-center gap-2">
+                            <i class="fas fa-shield-cat"></i> [CLASSIFIED_OPERATIONAL_MISSIONS]
+                        </span>
+
+                        <!-- Category Filters -->
+                        <div class="no-print flex flex-wrap gap-1 text-[11px] font-mono">
+                            <button onclick="filterMissions('all', this)" class="mission-btn px-2.5 py-1 rounded bg-cyber-cyan text-slate-950 font-bold">ALL</button>
+                            <button onclick="filterMissions('tech', this)" class="mission-btn px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyber-cyan">ACADEMIA & TECH</button>
+                            <button onclick="filterMissions('sales', this)" class="mission-btn px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyber-cyan">SALES & PROMO</button>
+                            <button onclick="filterMissions('social', this)" class="mission-btn px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyber-cyan">COMMUNITY</button>
+                        </div>
+                    </div>
+
+                    <!-- Missions List Container -->
+                    <div id="missions-list" class="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+                        
+                        <!-- Mission 1 -->
+                        <div class="mission-item p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-cyber-cyan/60 transition-all space-y-1.5" data-cat="tech">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="text-xs font-mono text-cyber-cyan bg-cyber-cyan/10 px-2 py-0.5 rounded border border-cyber-cyan/30">
+                                    UNIVERSITÀ DEGLI STUDI DI UDINE
+                                </span>
+                                <span class="text-[11px] font-mono text-slate-400"><i class="fas fa-university mr-1"></i> COLLABORAZIONE UNIVERSITARIA</span>
+                            </div>
+                            <h3 class="font-hud font-bold text-sm text-white">Collaborazione Universitaria - Bibliotecario</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                Supporto alla gestione dei servizi bibliotecari dell'Ateneo di Udine ed assistenza diretta agli studenti nella consultazione, ricerca e gestione dei prestiti.
+                            </p>
+                        </div>
+
+                        <!-- Mission 2 -->
+                        <div class="mission-item p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-amber-400/60 transition-all space-y-1.5" data-cat="sales">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+                                    PRAESIDIUM
+                                </span>
+                                <span class="text-[11px] font-mono text-slate-400"><i class="fas fa-laptop mr-1"></i> HARDWARE SALES</span>
+                            </div>
+                            <h3 class="font-hud font-bold text-sm text-white">Promoter PC e Stampanti HP</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                Promozione e vendita consulenziale dell'intero ecosistema informatico HP, consulenza tecnica mirata ai clienti e cura ottimale dell'area espositiva.
+                            </p>
+                        </div>
+
+                        <!-- Mission 3 -->
+                        <div class="mission-item p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-indigo-400/60 transition-all space-y-1.5" data-cat="sales">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="text-xs font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30">
+                                    CODEINE ITALY (CITTA FIERA)
+                                </span>
+                                <span class="text-[11px] font-mono text-slate-400"><i class="fas fa-wifi mr-1"></i> TELECOM PROMO</span>
+                            </div>
+                            <h3 class="font-hud font-bold text-sm text-white">Promoter SIM e Fibra Iliad</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                Attività di promozione commerciale e acquisizione nuovi clienti per soluzioni di connettività mobile e rete fissa ultraveloce.
+                            </p>
+                        </div>
+
+                        <!-- Mission 4 -->
+                        <div class="mission-item p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-rose-400/60 transition-all space-y-1.5" data-cat="sales">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="text-xs font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30">
+                                    PARDGROUP (MEDIAWORLD)
+                                </span>
+                                <span class="text-[11px] font-mono text-slate-400"><i class="fas fa-tv mr-1"></i> VIDEO TECH</span>
+                            </div>
+                            <h3 class="font-hud font-bold text-sm text-white">Promoter Televisioni</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                Consulenza alla clientela e promozione delle tecnologie di visualizzazione e TV di ultima generazione nel reparto video.
+                            </p>
+                        </div>
+
+                        <!-- Mission 5 -->
+                        <div class="mission-item p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-emerald-400/60 transition-all space-y-1.5" data-cat="social">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                                    ISTITUTO SALESIANO G. BEARZI
+                                </span>
+                                <span class="text-[11px] font-mono text-slate-400"><i class="fas fa-heart-pulse mr-1"></i> SERVIZIO CIVILE</span>
+                            </div>
+                            <h3 class="font-hud font-bold text-sm text-white">Servizio Civile Universale e Solidale Regionale</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                Attività di animazione, supporto educativo e gestione progetti presso il Dipartimento per le Politiche Giovanili dell'istituto.
+                            </p>
+                        </div>
+
+                        <!-- Mission 6 & 7 -->
+                        <div class="mission-item p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-600 transition-all space-y-1.5" data-cat="social">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                                    STADIO FRIULI / MIMI CATERING / ODONTO LABS
+                                </span>
+                                <span class="text-[11px] font-mono text-slate-400"><i class="fas fa-utensils mr-1"></i> HOSPITALITY & LAB</span>
+                            </div>
+                            <h3 class="font-hud font-bold text-sm text-white">Cameriere, Eventi & Tirocini Odontotecnici</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                Gestione delle mansioni di sala e cucina in grandi eventi sportivi; tirocini formativi di precisione presso Unident, Metalmed e Odontoform.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 5: ACADEMIC & CERTIFICATION PROTOCOLS -->
+            <div id="module-education" draggable="true" class="hud-card rounded-2xl p-6 flex flex-col justify-between">
+                <div class="no-print absolute top-4 right-4 cursor-grab active:cursor-grabbing p-2 text-slate-500 hover:text-cyber-cyan bg-slate-900/80 rounded border border-slate-800 drag-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="hud-bar -mx-6 -mt-6 p-4 px-6 border-b border-cyber-cyan/20 flex items-center justify-between">
+                        <span class="font-hud text-xs font-bold text-cyber-violet tracking-widest flex items-center gap-2">
+                            <i class="fas fa-graduation-cap"></i> [ACADEMIC_PROTOCOLS]
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <!-- Edu 1 -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-emerald-400 font-bold">[IN CORSO] UniUD</span>
+                            <h4 class="font-hud font-bold text-white text-xs mt-0.5">Laurea in Scienze e Tecnologie Multimediali (STM)</h4>
+                        </div>
+
+                        <!-- Edu 2 -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-cyber-cyan font-bold">[QUALIFICA]</span>
+                            <h4 class="font-hud font-bold text-white text-xs mt-0.5">Abilitazione Professionale Odontotecnico</h4>
+                        </div>
+
+                        <!-- Edu 3 -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-amber-400 font-bold">[DIPLOMA 2023] VOTO 82/100</span>
+                            <h4 class="font-hud font-bold text-white text-xs mt-0.5">IPSIA G. Ceconi - Udine</h4>
+                        </div>
+
+                        <!-- Certifications -->
+                        <div class="pt-2 border-t border-slate-800 space-y-2 font-mono">
+                            <div class="flex items-center gap-2 text-[11px] text-slate-300">
+                                <i class="fas fa-kit-medical text-rose-500"></i>
+                                <span>Primo Soccorso: <strong>BLSD Adulti & Pediatrico</strong></span>
+                            </div>
+                            <div class="flex items-center gap-2 text-[11px] text-slate-300">
+                                <i class="fas fa-trophy text-amber-400"></i>
+                                <span>Qualifica Sportiva: <strong>Diploma Tecnico Allenatore</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 6: QUANTUM TRANSMISSION TERMINAL (Interactive Contact Form) -->
+            <div id="module-terminal" draggable="true" class="hud-card rounded-2xl p-6 flex flex-col justify-between">
+                <div class="no-print absolute top-4 right-4 cursor-grab active:cursor-grabbing p-2 text-slate-500 hover:text-cyber-cyan bg-slate-900/80 rounded border border-slate-800 drag-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="hud-bar -mx-6 -mt-6 p-4 px-6 border-b border-cyber-cyan/20 flex items-center justify-between">
+                        <span class="font-hud text-xs font-bold text-cyber-cyan tracking-widest flex items-center gap-2">
+                            <i class="fas fa-terminal"></i> [QUANTUM_TRANSMISSION]
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-500">DIRECT_LINK</span>
+                    </div>
+
+                    <form onsubmit="handleTransmissionSubmit(event)" class="space-y-3 font-mono text-xs">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] uppercase mb-1">> SENDER_IDENTITY:</label>
+                            <input id="term-sender" type="text" placeholder="Il tuo nome / Azienda" required class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-800 focus:border-cyber-cyan text-slate-200 outline-none transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-400 text-[10px] uppercase mb-1">> TRANSMISSION_PAYLOAD:</label>
+                            <textarea id="term-msg" rows="3" placeholder="Scrivi un messaggio per Elias..." required class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-800 focus:border-cyber-cyan text-slate-200 outline-none transition-all resize-none"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 rounded bg-cyber-cyan/20 hover:bg-cyber-cyan text-cyber-cyan hover:text-black border border-cyber-cyan/40 font-hud font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>TRANSMIT MESSAGE</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="no-print pt-6 border-t border-slate-900 text-center font-mono text-xs text-slate-500 space-y-1">
+            <p>ELIAS RKIBI © 2026 • CYBER HUD OPERATIONAL DOSSIER • UDINE (ITALY)</p>
+            <p class="text-[10px] text-slate-600">
+                Autorizzo il trattamento dei dati personali presenti nel CV ai sensi del D. Lgs. 2018/101 e del GDPR (Regolamento UE 2016/679).
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        /* WEB AUDIO API SYNTHESIZER ENGINE */
+        let audioCtx = null;
+        let sfxEnabled = false;
+
+        function initAudioEngine() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSynthSound(freq, type = 'sine', duration = 0.06, gainValue = 0.05) {
+            if (!sfxEnabled) return;
+            try {
+                initAudioEngine();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainValue, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) { console.error(e); }
+        }
+
+        function toggleAudioSFX() {
+            sfxEnabled = !sfxEnabled;
+            const btn = document.getElementById('sfx-btn');
+            const icon = document.getElementById('sfx-icon');
+            if (sfxEnabled) {
+                initAudioEngine();
+                btn.className = "px-3 py-1.5 rounded bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan transition-all flex items-center gap-1.5 shadow-neon-cyan";
+                icon.className = "fas fa-volume-high text-cyber-cyan";
+                btn.querySelector('span').textContent = "SFX: ON";
+                playSynthSound(880, 'sine', 0.1, 0.08);
+                showToast("UI Audio Synthesizer Activated 🔊");
+            } else {
+                btn.className = "px-3 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-300 transition-all flex items-center gap-1.5";
+                icon.className = "fas fa-volume-xmark text-rose-400";
+                btn.querySelector('span').textContent = "SFX: OFF";
+                showToast("UI Audio Muted 🔇");
+            }
+        }
+
+        /* BOOT SEQUENCE ANIMATOR */
+        const bootLogs = [
+            "INITIALIZING NEURAL NETWORKS...",
+            "LOADING SUBJECT BIO & LICENSES [AM, B]...",
+            "COMPILING PROGRAMMING STACK: PHP, HTML, JAVA, PYTHON...",
+            "LOADING EXPERIENCE LOGS: PRAESIDIUM, ILIAD, UNIUD, BEARZI...",
+            "RENDERING INTERACTIVE CYBER HUD INTERFACE..."
+        ];
+
+        function startBootSequence() {
+            let step = 0;
+            const bar = document.getElementById('boot-bar');
+            const percent = document.getElementById('boot-percent');
+            const logBox = document.getElementById('boot-log');
+
+            const interval = setInterval(() => {
+                step += 2;
+                bar.style.width = step + '%';
+                percent.textContent = step + '%';
+
+                if (step % 20 === 0 && bootLogs[step / 20 - 1]) {
+                    logBox.textContent = '> ' + bootLogs[step / 20 - 1];
+                    playSynthSound(400 + step * 5, 'sawtooth', 0.04, 0.02);
+                }
+
+                if (step >= 100) {
+                    clearInterval(interval);
+                    setTimeout(skipBootSequence, 300);
+                }
+            }, 30);
+        }
+
+        function skipBootSequence() {
+            playSynthSound(1200, 'sine', 0.15, 0.08);
+            const boot = document.getElementById('boot-screen');
+            boot.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => boot.remove(), 700);
+        }
+
+        /* HOLOGRAPHIC CANVAS PARTICLES & WARP MODE */
+        let warpMode = false;
+        function initHudCanvas() {
+            const canvas = document.getElementById('hud-bg-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const particles = Array.from({ length: 65 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.8,
+                vy: (Math.random() - 0.5) * 0.8,
+                size: Math.random() * 2 + 1,
+            }));
+
+            let mouseX = -1000, mouseY = -1000;
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach((p, i) => {
+                    p.x += warpMode ? p.vx * 6 : p.vx;
+                    p.y += warpMode ? p.vy * 6 : p.vy;
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+
+                    // Draw Particle
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = warpMode ? '#ff007f' : '#00f3ff';
+                    ctx.fill();
+
+                    // Connect lines
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x;
+                        const dy = p.y - p2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 110) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(0, 243, 255, ${1 - dist / 110 * 0.8})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                });
+
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        function toggleWarpMode() {
+            warpMode = !warpMode;
+            playSynthSound(1000, 'sawtooth', 0.1, 0.08);
+            showToast(warpMode ? "Hyperdrive Particle Warp ACTIVE 🚀" : "Normal Particle Velocity Restored");
+        }
+
+        function toggleScanlines() {
+            const layer = document.getElementById('scanline-layer');
+            layer.classList.toggle('hidden');
+            playSynthSound(600, 'square', 0.05);
+        }
+
+        /* HOLOGRAPHIC AVATAR CANVAS GENERATOR */
+        function initAvatarCanvas() {
+            const canvas = document.getElementById('avatar-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = 150;
+            canvas.height = 150;
+
+            let scanY = 0;
+            function drawAvatar() {
+                ctx.clearRect(0, 0, 150, 150);
+
+                // Geometric Cyber Silhouette
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.15)';
+                ctx.beginPath();
+                ctx.arc(75, 55, 30, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.ellipse(75, 120, 45, 30, 0, Math.PI, 0);
+                ctx.fill();
+
+                // Hologram Grid Lines
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)';
+                ctx.lineWidth = 1;
+                for (let y = 0; y < 150; y += 8) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(150, y);
+                    ctx.stroke();
+                }
+
+                // Moving Hologram Beam
+                scanY = (scanY + 1.5) % 150;
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.3)';
+                ctx.fillRect(0, scanY, 150, 4);
+
+                requestAnimationFrame(drawAvatar);
+            }
+            drawAvatar();
+        }
+
+        /* INTERACTIVE HTML5 SKILL RADAR */
+        function initSkillRadar() {
+            const canvas = document.getElementById('skill-radar-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = 220 * dpr;
+            canvas.height = 220 * dpr;
+            ctx.scale(dpr, dpr);
+
+            const center = 110;
+            const radius = 70;
+            const skills = [
+                { name: 'PHP', val: 0.85, color: '#00f3ff' },
+                { name: 'HTML/CSS', val: 0.95, color: '#00f3ff' },
+                { name: 'Java', val: 0.75, color: '#00f3ff' },
+                { name: 'Python', val: 0.70, color: '#00f3ff' },
+                { name: 'Italiano', val: 1.00, color: '#8b5cf6' },
+                { name: 'Inglese', val: 0.65, color: '#8b5cf6' },
+                { name: 'Spagnolo', val: 0.45, color: '#8b5cf6' },
+                { name: 'Arabo', val: 0.30, color: '#8b5cf6' },
+            ];
+
+            const count = skills.length;
+
+            ctx.clearRect(0, 0, 220, 220);
+
+            // Web Rings
+            [0.25, 0.5, 0.75, 1].forEach(r => {
+                ctx.beginPath();
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+                    const x = center + radius * r * Math.cos(angle);
+                    const y = center + radius * r * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.stroke();
+            });
+
+            // Radial Lines & Text Labels
+            skills.forEach((s, i) => {
+                const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+                const x = center + radius * Math.cos(angle);
+                const y = center + radius * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.stroke();
+
+                const tx = center + (radius + 16) * Math.cos(angle);
+                const ty = center + (radius + 16) * Math.sin(angle);
+                ctx.font = '9px Fira Code';
+                ctx.fillStyle = s.color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(s.name, tx, ty);
+            });
+
+            // Radar Polygon
+            ctx.beginPath();
+            skills.forEach((s, i) => {
+                const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
+                const x = center + radius * s.val * Math.cos(angle);
+                const y = center + radius * s.val * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(0, 243, 255, 0.25)';
+            ctx.fill();
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        /* RECRUITER NEURAL MATCH CALCULATOR */
+        function computeMatch(type) {
+            playSynthSound(750, 'sine', 0.08);
+            const box = document.getElementById('match-output');
+
+            if (type === 'software') {
+                box.innerHTML = `
+                    <div class="flex justify-between items-center text-cyber-cyan font-bold">
+                        <span>SOFTWARE / MULTIMEDIA MATCH:</span>
+                        <span class="text-sm">96% ⚡</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300">
+                        Eccellente per posizioni Junior Dev/Multimediali grazie allo studio attivo in Scienze Multimediali (UniUD) e competenze PHP, HTML, Java, Python.
+                    </p>`;
+            } else if (type === 'sales') {
+                box.innerHTML = `
+                    <div class="flex justify-between items-center text-amber-400 font-bold">
+                        <span>TECH SALES & PROMO MATCH:</span>
+                        <span class="text-sm">99% ⚡</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300">
+                        Match altissimo con posizioni commerciali grazie alle esperienze dirette come Promoter HP (Praesidium), SIM/Fibra Iliad e TV (Mediaworld).
+                    </p>`;
+            } else if (type === 'social') {
+                box.innerHTML = `
+                    <div class="flex justify-between items-center text-emerald-400 font-bold">
+                        <span>COMMUNITY & SUPPORT MATCH:</span>
+                        <span class="text-sm">95% ⚡</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300">
+                        Solida attitudine al lavoro di squadra ed assistenza dimostrata nel Servizio Civile Bearzi e nella gestione dei servizi bibliotecari UniUD.
+                    </p>`;
+            }
+        }
+
+        /* EXPERIENCE MISSION FILTER */
+        function filterMissions(cat, btn) {
+            playSynthSound(500, 'square', 0.04);
+            document.querySelectorAll('.mission-btn').forEach(b => {
+                b.className = "mission-btn px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyber-cyan";
+            });
+            btn.className = "mission-btn px-2.5 py-1 rounded bg-cyber-cyan text-slate-950 font-bold";
+
+            const items = document.querySelectorAll('.mission-item');
+            items.forEach(item => {
+                if (cat === 'all' || item.getAttribute('data-cat') === cat) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        /* DRAG & DROP HUD PANEL REORDERING */
+        const hudGrid = document.getElementById('hud-grid');
+        let draggedModule = null;
+
+        function setupHudDragAndDrop() {
+            const modules = document.querySelectorAll('.hud-card');
+
+            modules.forEach(mod => {
+                mod.addEventListener('dragstart', () => {
+                    draggedModule = mod;
+                    playSynthSound(350, 'triangle', 0.05);
+                    setTimeout(() => mod.classList.add('dragging'), 0);
+                });
+
+                mod.addEventListener('dragend', () => {
+                    mod.classList.remove('dragging');
+                    modules.forEach(m => m.classList.remove('drag-over'));
+                    draggedModule = null;
+                });
+
+                mod.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (mod !== draggedModule) {
+                        mod.classList.add('drag-over');
+                    }
+                });
+
+                mod.addEventListener('dragleave', () => {
+                    mod.classList.remove('drag-over');
+                });
+
+                mod.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    mod.classList.remove('drag-over');
+
+                    if (draggedModule && mod !== draggedModule) {
+                        playSynthSound(800, 'sine', 0.06);
+                        const children = Array.from(hudGrid.children);
+                        const indexA = children.indexOf(draggedModule);
+                        const indexB = children.indexOf(mod);
+
+                        if (indexA < indexB) {
+                            mod.after(draggedModule);
+                        } else {
+                            mod.before(draggedModule);
+                        }
+                        showToast("HUD Panel Layout Realigned 📐");
+                    }
+                });
+            });
+        }
+
+        const initialHudState = Array.from(hudGrid.children);
+        function resetHudLayout() {
+            hudGrid.innerHTML = '';
+            initialHudState.forEach(m => hudGrid.appendChild(m));
+            setupHudDragAndDrop();
+            playSynthSound(700, 'sawtooth', 0.08);
+            showToast("HUD Grid Alignment Reset");
+        }
+
+        /* CYBER GLITCH TRIGGER */
+        function triggerCyberGlitch() {
+            playSynthSound(200, 'sawtooth', 0.2, 0.12);
+            document.body.classList.add('glitch-active');
+            setTimeout(() => {
+                document.body.classList.remove('glitch-active');
+            }, 500);
+            showToast("Neural Glitch Simulation Triggered ⚡");
+        }
+
+        /* TRANSMISSION FORM SIMULATION */
+        function handleTransmissionSubmit(e) {
+            e.preventDefault();
+            playSynthSound(1100, 'sine', 0.15, 0.08);
+            const sender = document.getElementById('term-sender').value;
+            showToast(`Transmission Sent from [${sender}]! 📡`);
+            document.getElementById('term-sender').value = '';
+            document.getElementById('term-msg').value = '';
+        }
+
+        /* UTILITY: COPY TO CLIPBOARD */
+        function copyTransmission(text, msg) {
+            playSynthSound(950, 'sine', 0.05);
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast(msg);
+        }
+
+        /* TOAST NOTIFICATION SYSTEM */
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto px-4 py-2.5 rounded-lg bg-slate-900 border border-cyber-cyan text-cyber-cyan font-mono text-xs shadow-neon-cyan flex items-center gap-2 transform translate-y-4 opacity-0 transition-all duration-300';
+            toast.innerHTML = `<i class="fas fa-terminal"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        /* INITIALIZATION ON LOAD */
+        window.addEventListener('load', () => {
+            startBootSequence();
+            initHudCanvas();
+            initAvatarCanvas();
+            initSkillRadar();
+            setupHudDragAndDrop();
+        });
+    </script>
+</body>
+</html>
